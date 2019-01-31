@@ -134,7 +134,7 @@ table payment_info {
   pin number PK
   amount number
   account_number number
-  type varchar2
+  type varchar2(20)
   user_id number
 }
 
