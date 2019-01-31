@@ -1,2 +1,1 @@
-AI contest er ki khobor?
-mara
+MYGP DATABASE
