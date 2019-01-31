@@ -138,7 +138,7 @@ table payment_info {
   user_id number
 }
 
-Ref: users.package_id > package_id
+Ref: users.package_id > package.package_id
 Ref: users.mobile_number < emergency_balance.mobile_number
 Ref: users.mobile_number < notifications.mobile_number
 Ref: users.mobile_number < user_voucher.user_id
