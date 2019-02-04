@@ -203,6 +203,66 @@ CREATE OR REPLACE PROCEDURE PURCHASE_INTERNET_OFFER(IN OFFER_NO NUMERIC, IN USER
   end;
   $$ LANGUAGE PLPGSQL;
 
+create or replace procedure purchase_reward_offer(in user_no numeric, in offer_no numeric) as $$
+declare
+    PURCHASED_TIMESTAMP TIMESTAMPTZ;
+    END_DATE varchar(100);
+    VALID NUMERIC;
+    REWARD_POINT NUMERIC;
+    DATA_TOTAL NUMERIC;
+    OLD_REWARD_POINT NUMERIC;
+    OLD_DATA NUMERIC;
+ BEGIN
+    PURCHASED_TIMESTAMP := NOW();
+    SELECT  VALIDITY, points_need, mb_amount  FROM reward_offer WHERE  OFFER_ID = OFFER_NO
+    INTO VALID, REWARD_POINT, DATA_TOTAL;
+    SELECT TOTAL_REWARD_POINT, TOTAL_MB FROM USERS INTO
+      OLD_REWARD_POINT, OLD_DATA;
+
+    IF OLD_REWARD_POINT >= REWARD_POINT THEN
+      END_DATE := TO_CHAR(PURCHASED_TIMESTAMP + interval '1 DAY' * VALID, 'YYYY-MM-DD HH12:MI:SS AM');
+      if ((select count(*) from offers where offer_id = OFFER_NO) = 1) then
+        raise notice 'is present in the table';
+      end if;
+      INSERT INTO PURCHASE_OFFER VALUES (USER_NO, OFFER_NO,PURCHASED_TIMESTAMP);
+      INSERT INTO NOTIFICATIONS VALUES (USER_NO, 'YOU HAVE SUCCESSFULLY PURCHASED '
+      ||DATA_TOTAL || ' MB. '|| REWARD_POINT || ' REWARD POINTS HAVE BEEN DEDUCTED FROM YOUR TOTAL REWARD POINTS.'
+      ||' THE DATA AMOUNT WILL EXPIRE ON '|| END_DATE);
+      UPDATE USERS SET (TOTAL_REWARD_POINT, TOTAL_MB) =
+      (OLD_REWARD_POINT-REWARD_POINT, OLD_DATA + DATA_TOTAL);
+      RAISE NOTICE 'SUCCESSFULLY PURCHASED A DATA OFFER : % USING REWARD POINTS',OFFER_NO;
+    ELSE
+      RAISE NOTICE 'HAVE NOT SUFFICIENT REWARD POINTS';
+    END IF;
+
+  EXCEPTION
+   WHEN OTHERS THEN
+    RAISE NOTICE 'CANNOT PURCHASE THE DATA OFFER % USING THE REWARD POINTS', OFFER_NO;
+  end;
+
+$$ language plpgsql;
+
+create or replace procedure make_fnf(in number_by numeric, in number_to numeric) as $$
+declare
+begin
+    insert into fnf values(number_by, number_to);
+    raise notice 'Successfully inserted the fnf';
+    exception when others then
+    raise notice 'Cannot insert the fnf';
+end;
+$$ language plpgsql;
+
+create or replace procedure make_link(in number_by numeric, in number_to numeric) as $$
+declare
+begin
+  insert into link values (number_by, number_to);
+  raise notice 'Successfully inserted the link';
+  exception when others then
+  raise notice 'Cannot insert the link';
+
+end;
+$$ language plpgsql;
+
 DO  $$
 BEGIN
   CALL PURCHASE_INTERNET_OFFER(102, 1755840785);
