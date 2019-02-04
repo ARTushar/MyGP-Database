@@ -1,243 +1,243 @@
 
-CREATE OR REPLACE PROCEDURE RECHARGE_ACCOUNT(IN MOB_NUMBER NUMERIC, IN AMOUNT NUMERIC) AS $$
-  DECLARE
-  OLD_AMOUNT NUMERIC;
-  CUR_TIMESTAMP TIMESTAMPTZ;
-  VALIDITY NUMERIC;
-  END_DATE varchar(100);
-  BEGIN
-    SELECT BALANCE INTO OLD_AMOUNT FROM USERS WHERE MOBILE_NUMBER = MOB_NUMBER;
-    CUR_TIMESTAMP := NOW();
-    VALIDITY := FIND_RECHARGE_LAST_DATE(AMOUNT);
-    END_DATE := TO_CHAR(CUR_TIMESTAMP + interval '1 DAY' * VALIDITY:: DATE, 'YYYY-MM-DD HH12:MI:SS AM');
-    INSERT INTO RECHARGE_HISTORY VALUES (CUR_TIMESTAMP, MOB_NUMBER, AMOUNT, VALIDITY);
-    UPDATE USERS SET  BALANCE = OLD_AMOUNT + AMOUNT WHERE MOBILE_NUMBER = MOB_NUMBER;
-    INSERT INTO NOTIFICATIONS
-    VALUES (MOB_NUMBER, 'YOU HAVE SUCCESSFULLY RECHARGED ' ||
-    AMOUNT || ' TAKA IN YOUR ACCOUNT BALANCE. YOUR CURRENT ACCOUNT BALANCE IS '
-    || OLD_AMOUNT+ AMOUNT || ' TAKA. YOUR BALANCE WILL BE EXPIRED ON '|| END_DATE);
-    RAISE NOTICE 'SUCCESSFULLY RECHARGED % TAKA IN THE ACCOUNT', AMOUNT;
-  EXCEPTION WHEN OTHERS THEN
-    RAISE NOTICE 'CANNOT INSERT THE UPDATED INFO INTO THE RECHARGE_HISTORY OR USERS OR NOTIFICATIONS :(';
-  END;
-  $$ LANGUAGE PLPGSQL;
+create or replace procedure recharge_account(in mob_number numeric, in amount numeric) as $$
+  declare
+  old_amount numeric;
+  cur_timestamp timestamptz;
+  validity numeric;
+  end_date varchar(100);
+  begin
+    select balance into old_amount from users where mobile_number = mob_number;
+    cur_timestamp := now();
+    validity := find_recharge_last_date(amount);
+    end_date := to_char(cur_timestamp + interval '1 day' * validity:: date, 'yyyy-mm-dd hh12:mi:ss am');
+    insert into recharge_history values (cur_timestamp, mob_number, amount, validity);
+    update users set  balance = old_amount + amount where mobile_number = mob_number;
+    insert into notifications
+    values (mob_number, 'You have successfully recharged ' ||
+    amount || ' taka in your account balance. Your current account balance is '
+    || old_amount+ amount || ' taka. Your balance will be expired on '|| end_date);
+    raise notice 'successfully recharged % taka in the account', amount;
+  exception when others then
+    raise notice 'cannot insert the updated info into the recharge_history or users or notifications :(';
+  end;
+  $$ language plpgsql;
 
-CREATE OR REPLACE FUNCTION FIND_RECHARGE_LAST_DATE(IN AMOUNT NUMERIC) RETURNS NUMERIC AS $$
-  DECLARE
-  VALID_DAYS NUMERIC;
-    BEGIN
-    IF(AMOUNT < 50) THEN
-      VALID_DAYS := 30;
-    ELSE VALID_DAYS := 60;
+create or replace function find_recharge_last_date(in amount numeric) returns numeric as $$
+  declare
+  valid_days numeric;
+    begin
+    if(amount < 50) then
+      valid_days := 30;
+    else valid_days := 60;
     end if;
-    RETURN VALID_DAYS;
+    return valid_days;
   end;
-  $$ LANGUAGE PLPGSQL;
+  $$ language plpgsql;
 
-CREATE OR REPLACE PROCEDURE PURCHASE_SMS_OFFER(IN OFFER_NO NUMERIC, IN USER_NO NUMERIC) AS $$
-  DECLARE
-    PURCHASED_TIMESTAMP TIMESTAMPTZ;
-    COST NUMERIC;
-    END_DATE varchar(100);
-    VALID NUMERIC;
-    REWARD_POINT NUMERIC;
-    SMS_TOTAL NUMERIC;
-    OLD_REWARD_POINT NUMERIC;
-    OLD_ACCOUNT_BALANCE NUMERIC;
-    OLD_SMS NUMERIC;
-  BEGIN
-    PURCHASED_TIMESTAMP := NOW();
-    SELECT PRICE, VALIDITY, REWARD_POINTS, SMS_AMOUNT  FROM SMS_OFFER WHERE  OFFER_ID = OFFER_NO
-    INTO COST, VALID, REWARD_POINT, SMS_TOTAL;
-    SELECT TOTAL_REWARD_POINT, BALANCE, TOTAL_OFFER_SMS FROM USERS INTO
-      OLD_REWARD_POINT, OLD_ACCOUNT_BALANCE, OLD_SMS;
-    IF OLD_ACCOUNT_BALANCE >= COST THEN
-      END_DATE := TO_CHAR(PURCHASED_TIMESTAMP + interval '1 DAY' * VALID, 'YYYY-MM-DD HH12:MI:SS AM');
-      INSERT INTO PURCHASE_OFFER VALUES (USER_NO, OFFER_NO,PURCHASED_TIMESTAMP);
-      INSERT INTO NOTIFICATIONS VALUES (USER_NO, 'YOU HAVE SUCCESSFULLY PURCHASED '
-      ||SMS_TOTAL || '. '||COST || ' TAKA HAS BEEN DEDUCTED FROM YOUR ACCOUNT BALANCE.'
-      ||' THE SMS BUNDLE WILL EXPIRE ON '|| END_DATE);
-      UPDATE USERS SET(TOTAL_REWARD_POINT, TOTAL_OFFER_SMS, BALANCE) =
-      (OLD_REWARD_POINT+REWARD_POINT, OLD_SMS + SMS_TOTAL, OLD_ACCOUNT_BALANCE-COST);
-      RAISE NOTICE 'SUCCESSFULLY PURCHASED A SMS OFFER : %',OFFER_NO;
-    ELSE
-    RAISE NOTICE 'HAVE NOT SUFFICIENT BALANCE';
-    END IF;
+create or replace procedure purchase_sms_offer(in offer_no numeric, in user_no numeric) as $$
+  declare
+    purchased_timestamp timestamptz;
+    cost numeric;
+    end_date varchar(100);
+    valid numeric;
+    reward_point numeric;
+    sms_total numeric;
+    old_reward_point numeric;
+    old_account_balance numeric;
+    old_sms numeric;
+  begin
+    purchased_timestamp := now();
+    select price, validity, reward_points, sms_amount  from sms_offer where  offer_id = offer_no
+    into cost, valid, reward_point, sms_total;
+    select total_reward_point, balance, total_offer_sms from users into
+      old_reward_point, old_account_balance, old_sms;
+    if old_account_balance >= cost then
+      end_date := to_char(purchased_timestamp + interval '1 day' * valid, 'yyyy-mm-dd hh12:mi:ss am');
+      insert into purchase_offer values (user_no, offer_no,purchased_timestamp);
+      insert into notifications values (user_no, 'You have successfully purchased '
+      ||sms_total || '. '||cost || ' taka has been deducted from your account balance.'
+      ||' The sms bundle will expire on '|| end_date);
+      update users set(total_reward_point, total_offer_sms, balance) =
+      (old_reward_point+reward_point, old_sms + sms_total, old_account_balance-cost);
+      raise notice 'successfully purchased a sms offer : %',offer_no;
+    else
+    raise notice 'have not sufficient balance';
+    end if;
 
-    EXCEPTION
-    WHEN OTHERS THEN
-    RAISE NOTICE 'CANNOT PURCHASE THE SMS OFFER %', OFFER_NO;
+    exception
+    when others then
+    raise notice 'cannot purchase the sms offer %', offer_no;
   end;
-  $$ LANGUAGE PLPGSQL;
+  $$ language plpgsql;
 
 
-CREATE OR REPLACE PROCEDURE PURCHASE_TALK_TIME_OFFER(IN OFFER_NO NUMERIC, IN USER_NO NUMERIC) AS $$
-  DECLARE
-    PURCHASED_TIMESTAMP TIMESTAMPTZ;
-    COST NUMERIC;
-    END_DATE varchar(100);
-    VALID NUMERIC;
-    REWARD_POINT NUMERIC;
-    TALK_TIME_TOTAL NUMERIC;
-    OLD_REWARD_POINT NUMERIC;
-    OLD_ACCOUNT_BALANCE NUMERIC;
-    OLD_TALK_TIME NUMERIC;
-  BEGIN
-    PURCHASED_TIMESTAMP := NOW();
-    SELECT PRICE, VALIDITY, REWARD_POINTS, TALK_TIME  FROM TALK_TIME_OFFER WHERE  OFFER_ID = OFFER_NO
-    INTO COST, VALID, REWARD_POINT, TALK_TIME_TOTAL;
-    SELECT TOTAL_REWARD_POINT, BALANCE, TOTAL_TALK_TIME FROM USERS INTO
-      OLD_REWARD_POINT, OLD_ACCOUNT_BALANCE, OLD_TALK_TIME;
-    IF OLD_ACCOUNT_BALANCE >= COST THEN
-      END_DATE := TO_CHAR(PURCHASED_TIMESTAMP + interval '1 DAY' * VALID, 'YYYY-MM-DD HH12:MI:SS AM');
-      INSERT INTO PURCHASE_OFFER VALUES (USER_NO, OFFER_NO,PURCHASED_TIMESTAMP);
-      INSERT INTO NOTIFICATIONS VALUES (USER_NO, 'YOU HAVE SUCCESSFULLY PURCHASED '
-      ||TALK_TIME_TOTAL || ' MINUTES. '||COST || ' TAKA HAS BEEN DEDUCTED FROM YOUR ACCOUNT BALANCE.'
-      ||' THE TALK TIME BUNDLE WILL EXPIRE ON '|| END_DATE);
-      INSERT INTO USERS(TOTAL_REWARD_POINT, TOTAL_TALK_TIME, BALANCE) VALUES
-      (OLD_REWARD_POINT+REWARD_POINT, OLD_TALK_TIME + TALK_TIME_TOTAL, OLD_ACCOUNT_BALANCE-COST);
-      RAISE NOTICE 'SUCCESSFULLY PURCHASED A TALK TIME OFFER : %',OFFER_NO;
-    ELSE
-    RAISE NOTICE 'HAVE NOT SUFFICIENT BALANCE';
-    END IF;
+create or replace procedure purchase_talk_time_offer(in offer_no numeric, in user_no numeric) as $$
+  declare
+    purchased_timestamp timestamptz;
+    cost numeric;
+    end_date varchar(100);
+    valid numeric;
+    reward_point numeric;
+    talk_time_total numeric;
+    old_reward_point numeric;
+    old_account_balance numeric;
+    old_talk_time numeric;
+  begin
+    purchased_timestamp := now();
+    select price, validity, reward_points, talk_time  from talk_time_offer where  offer_id = offer_no
+    into cost, valid, reward_point, talk_time_total;
+    select total_reward_point, balance, total_talk_time from users into
+      old_reward_point, old_account_balance, old_talk_time;
+    if old_account_balance >= cost then
+      end_date := to_char(purchased_timestamp + interval '1 day' * valid, 'yyyy-mm-dd hh12:mi:ss am');
+      insert into purchase_offer values (user_no, offer_no,purchased_timestamp);
+      insert into notifications values (user_no, 'You have successfully purchased '
+      ||talk_time_total || ' minutes. '||cost || ' taka has been deducted from your account balance.'
+      ||' The talk time bundle will expire on '|| end_date);
+      insert into users(total_reward_point, total_talk_time, balance) values
+      (old_reward_point+reward_point, old_talk_time + talk_time_total, old_account_balance-cost);
+      raise notice 'successfully purchased a talk time offer : %',offer_no;
+    else
+    raise notice 'have not sufficient balance';
+    end if;
 
-    EXCEPTION  WHEN OTHERS THEN
-    RAISE NOTICE 'CANNOT PURCHASE THE TALK TIME OFFER %', OFFER_NO;
+    exception  when others then
+    raise notice 'cannot purchase the talk time offer %', offer_no;
   end;
-  $$ LANGUAGE PLPGSQL;
+  $$ language plpgsql;
 
 
-CREATE OR REPLACE PROCEDURE PURCHASE_GENERAL_OFFER
-  (IN USER_NO NUMERIC, IN MIN NUMERIC, IN DATA NUMERIC, IN SMS NUMERIC, IN VALID NUMERIC)
-AS $$
-  DECLARE
-    PURCHASED_TIMESTAMP TIMESTAMPTZ;
-    COST NUMERIC;
-    END_DATE varchar(100);
-    OLD_ACCOUNT_BALANCE NUMERIC;
-    OLD_TALK_TIME NUMERIC;
-    OLD_DATA NUMERIC;
-    OLD_SMS NUMERIC;
-    OFFER_NO NUMERIC;
-  BEGIN
-    PURCHASED_TIMESTAMP := NOW();
-    SELECT BALANCE, TOTAL_TALK_TIME, TOTAL_MB, TOTAL_OFFER_SMS FROM USERS INTO
-    OLD_ACCOUNT_BALANCE, OLD_TALK_TIME, OLD_DATA, OLD_SMS;
-    COST := COUNT_GENERAL_OFFER_PRICE(SMS, DATA, MIN);
+create or replace procedure purchase_general_offer
+  (in user_no numeric, in min numeric, in data numeric, in sms numeric, in valid numeric)
+as $$
+  declare
+    purchased_timestamp timestamptz;
+    cost numeric;
+    end_date varchar(100);
+    old_account_balance numeric;
+    old_talk_time numeric;
+    old_data numeric;
+    old_sms numeric;
+    offer_no numeric;
+  begin
+    purchased_timestamp := now();
+    select balance, total_talk_time, total_mb, total_offer_sms from users into
+    old_account_balance, old_talk_time, old_data, old_sms;
+    cost := count_general_offer_price(sms, data, min);
 
-    IF OLD_ACCOUNT_BALANCE >= COST THEN
-      END_DATE := TO_CHAR(PURCHASED_TIMESTAMP + INTERVAL '1 DAY' * VALID, 'YYYY-MM-DD HH12:MI:SS AM');
-      OFFER_NO = NEXTVAL(pg_get_serial_sequence('GENERAL_OFFER', 'CUSTOM_ID'));
-      INSERT INTO GENERAL_OFFER(offer_id, PRICE, VALIDITY, REWARD_POINTS, MUNITE, MB_AMOUNT, SMS_AMOUNT)
-      VALUES (OFFER_NO, COST,VALID, 0, MIN, DATA, SMS);
-      INSERT INTO PURCHASE_OFFER VALUES(USER_NO, OFFER_NO, PURCHASED_TIMESTAMP);
-      INSERT INTO NOTIFICATIONS VALUES (USER_NO, 'YOU HAVE SUCCESSFULLY PURCHASED '
-      ||MIN || ' MINUTES. ' || DATA || ' MB. ' || SMS || ' SMS. ' ||COST || ' TAKA HAS BEEN DEDUCTED FROM YOUR ACCOUNT BALANCE.'
-      ||' THE OFFER WILL EXPIRE ON '|| END_DATE);
-      UPDATE USERS SET (TOTAL_MB, TOTAL_TALK_TIME, TOTAL_OFFER_SMS, BALANCE) =
-      (OLD_DATA+DATA, OLD_TALK_TIME + MIN,OLD_SMS+SMS,  OLD_ACCOUNT_BALANCE-COST);
-      RAISE NOTICE 'SUCCESSFULLY PURCHASED A GENERAL OFFER : %',OFFER_NO;
-    ELSE
-    RAISE NOTICE 'HAVE NOT SUFFICIENT BALANCE';
-    END IF;
+    if old_account_balance >= cost then
+      end_date := to_char(purchased_timestamp + interval '1 day' * valid, 'yyyy-mm-dd hh12:mi:ss am');
+      offer_no = nextval(pg_get_serial_sequence('general_offer', 'custom_id'));
+      insert into general_offer(offer_id, price, validity, reward_points, munite, mb_amount, sms_amount)
+      values (offer_no, cost,valid, 0, min, data, sms);
+      insert into purchase_offer values(user_no, offer_no, purchased_timestamp);
+      insert into notifications values (user_no, 'You have successfully purchased '
+      ||min || ' minutes. ' || data || ' mb. ' || sms || ' sms. ' ||cost || ' taka has been deducted from your account balance.'
+      ||' The offer will expire on '|| end_date);
+      update users set (total_mb, total_talk_time, total_offer_sms, balance) =
+      (old_data+data, old_talk_time + min,old_sms+sms,  old_account_balance-cost);
+      raise notice 'successfully purchased a general offer : %',offer_no;
+    else
+    raise notice 'have not sufficient balance';
+    end if;
 
-    EXCEPTION
-    WHEN OTHERS THEN
-    RAISE NOTICE 'CANNOT PURCHASE THE GENERAL OFFER %', OFFER_NO;
+    exception
+    when others then
+    raise notice 'cannot purchase the general offer %', offer_no;
   end;
-  $$ LANGUAGE PLPGSQL;
+  $$ language plpgsql;
 
-CREATE OR REPLACE FUNCTION COUNT_GENERAL_OFFER_PRICE(IN SMS numeric, IN DATA numeric, IN TALK numeric)
- RETURNS NUMERIC AS $$
-DECLARE
-  PRICE NUMERIC;
-  SMS_COST NUMERIC;
-  DATA_COST NUMERIC;
-  TALK_TIME_COST NUMERIC;
-BEGIN
-  SELECT CALL_RATE, SMS_RATE, DATA_RATE FROM PACKAGE INTO TALK_TIME_COST, SMS_COST, DATA_COST;
-  PRICE := SMS_COST*4/5 * SMS + TALK_TIME_COST*4/5 * TALK + DATA_COST * 4/5 * DATA;
-  RETURN PRICE;
+create or replace function count_general_offer_price(in sms numeric, in data numeric, in talk numeric)
+ returns numeric as $$
+declare
+  price numeric;
+  sms_cost numeric;
+  data_cost numeric;
+  talk_time_cost numeric;
+begin
+  select call_rate, sms_rate, data_rate from package into talk_time_cost, sms_cost, data_cost;
+  price := sms_cost*4/5 * sms + talk_time_cost*4/5 * talk + data_cost * 4/5 * data;
+  return price;
 end;
 
-$$ LANGUAGE PLPGSQL;
+$$ language plpgsql;
 
 
-CREATE OR REPLACE PROCEDURE PURCHASE_INTERNET_OFFER(IN OFFER_NO NUMERIC, IN USER_NO NUMERIC) AS $$
-  DECLARE
-    PURCHASED_TIMESTAMP TIMESTAMPTZ;
-    COST NUMERIC;
-    END_DATE varchar(100);
-    VALID NUMERIC;
-    REWARD_POINT NUMERIC;
-    DATA_TOTAL NUMERIC;
-    OLD_REWARD_POINT NUMERIC;
-    OLD_ACCOUNT_BALANCE NUMERIC;
-    OLD_DATA NUMERIC;
-  BEGIN
-    PURCHASED_TIMESTAMP := NOW();
-    SELECT PRICE, VALIDITY, REWARD_POINTS, DATA_AMOUNT  FROM INTERNET_OFFER WHERE  OFFER_ID = OFFER_NO
-    INTO COST, VALID, REWARD_POINT, DATA_TOTAL;
-    SELECT TOTAL_REWARD_POINT, BALANCE, TOTAL_MB FROM USERS INTO
-      OLD_REWARD_POINT, OLD_ACCOUNT_BALANCE, OLD_DATA;
+create or replace procedure purchase_internet_offer(in offer_no numeric, in user_no numeric) as $$
+  declare
+    purchased_timestamp timestamptz;
+    cost numeric;
+    end_date varchar(100);
+    valid numeric;
+    reward_point numeric;
+    data_total numeric;
+    old_reward_point numeric;
+    old_account_balance numeric;
+    old_data numeric;
+  begin
+    purchased_timestamp := now();
+    select price, validity, reward_points, data_amount  from internet_offer where  offer_id = offer_no
+    into cost, valid, reward_point, data_total;
+    select total_reward_point, balance, total_mb from users into
+      old_reward_point, old_account_balance, old_data;
 
-    IF OLD_ACCOUNT_BALANCE >= COST THEN
-      END_DATE := TO_CHAR(PURCHASED_TIMESTAMP + interval '1 DAY' * VALID, 'YYYY-MM-DD HH12:MI:SS AM');
-      if ((select count(*) from offers where offer_id = OFFER_NO) = 1) then
+    if old_account_balance >= cost then
+      end_date := to_char(purchased_timestamp + interval '1 day' * valid, 'yyyy-mm-dd hh12:mi:ss am');
+      if ((select count(*) from offers where offer_id = offer_no) = 1) then
         raise notice 'is present in the table';
       end if;
-      INSERT INTO PURCHASE_OFFER VALUES (USER_NO, OFFER_NO,PURCHASED_TIMESTAMP);
-      INSERT INTO NOTIFICATIONS VALUES (USER_NO, 'YOU HAVE SUCCESSFULLY PURCHASED '
-      ||DATA_TOTAL || ' MB. '||COST || ' TAKA HAS BEEN DEDUCTED FROM YOUR ACCOUNT BALANCE.'
-      ||' THE DATA AMOUNT WILL EXPIRE ON '|| END_DATE);
-      UPDATE USERS SET (TOTAL_REWARD_POINT, TOTAL_MB, BALANCE) =
-      (OLD_REWARD_POINT+REWARD_POINT, OLD_DATA + DATA_TOTAL, OLD_ACCOUNT_BALANCE-COST);
-      RAISE NOTICE 'SUCCESSFULLY PURCHASED A DATA OFFER : %',OFFER_NO;
-    ELSE
-      RAISE NOTICE 'HAVE NOT SUFFICIENT BALANCE';
-    END IF;
+      insert into purchase_offer values (user_no, offer_no,purchased_timestamp);
+      insert into notifications values (user_no, 'You have successfully purchased '
+      ||data_total || ' mb. '||cost || ' taka has been deducted from your account balance.'
+      ||' The data amount will expire on '|| end_date);
+      update users set (total_reward_point, total_mb, balance) =
+      (old_reward_point+reward_point, old_data + data_total, old_account_balance-cost);
+      raise notice 'successfully purchased a data offer : %',offer_no;
+    else
+      raise notice 'have not sufficient balance';
+    end if;
 
-  EXCEPTION
-   WHEN OTHERS THEN
-    RAISE NOTICE 'CANNOT PURCHASE THE DATA OFFER %', OFFER_NO;
+  exception
+   when others then
+    raise notice 'cannot purchase the data offer %', offer_no;
   end;
-  $$ LANGUAGE PLPGSQL;
+  $$ language plpgsql;
 
 create or replace procedure purchase_reward_offer(in user_no numeric, in offer_no numeric) as $$
 declare
-    PURCHASED_TIMESTAMP TIMESTAMPTZ;
-    END_DATE varchar(100);
-    VALID NUMERIC;
-    REWARD_POINT NUMERIC;
-    DATA_TOTAL NUMERIC;
-    OLD_REWARD_POINT NUMERIC;
-    OLD_DATA NUMERIC;
- BEGIN
-    PURCHASED_TIMESTAMP := NOW();
-    SELECT  VALIDITY, points_need, mb_amount  FROM reward_offer WHERE  OFFER_ID = OFFER_NO
-    INTO VALID, REWARD_POINT, DATA_TOTAL;
-    SELECT TOTAL_REWARD_POINT, TOTAL_MB FROM USERS INTO
-      OLD_REWARD_POINT, OLD_DATA;
+    purchased_timestamp timestamptz;
+    end_date varchar(100);
+    valid numeric;
+    reward_point numeric;
+    data_total numeric;
+    old_reward_point numeric;
+    old_data numeric;
+ begin
+    purchased_timestamp := now();
+    select  validity, points_need, mb_amount  from reward_offer where  offer_id = offer_no
+    into valid, reward_point, data_total;
+    select total_reward_point, total_mb from users into
+      old_reward_point, old_data;
 
-    IF OLD_REWARD_POINT >= REWARD_POINT THEN
-      END_DATE := TO_CHAR(PURCHASED_TIMESTAMP + interval '1 DAY' * VALID, 'YYYY-MM-DD HH12:MI:SS AM');
-      if ((select count(*) from offers where offer_id = OFFER_NO) = 1) then
+    if old_reward_point >= reward_point then
+      end_date := to_char(purchased_timestamp + interval '1 day' * valid, 'yyyy-mm-dd hh12:mi:ss am');
+      if ((select count(*) from offers where offer_id = offer_no) = 1) then
         raise notice 'is present in the table';
       end if;
-      INSERT INTO PURCHASE_OFFER VALUES (USER_NO, OFFER_NO,PURCHASED_TIMESTAMP);
-      INSERT INTO NOTIFICATIONS VALUES (USER_NO, 'YOU HAVE SUCCESSFULLY PURCHASED '
-      ||DATA_TOTAL || ' MB. '|| REWARD_POINT || ' REWARD POINTS HAVE BEEN DEDUCTED FROM YOUR TOTAL REWARD POINTS.'
-      ||' THE DATA AMOUNT WILL EXPIRE ON '|| END_DATE);
-      UPDATE USERS SET (TOTAL_REWARD_POINT, TOTAL_MB) =
-      (OLD_REWARD_POINT-REWARD_POINT, OLD_DATA + DATA_TOTAL);
-      RAISE NOTICE 'SUCCESSFULLY PURCHASED A DATA OFFER : % USING REWARD POINTS',OFFER_NO;
-    ELSE
-      RAISE NOTICE 'HAVE NOT SUFFICIENT REWARD POINTS';
-    END IF;
+      insert into purchase_offer values (user_no, offer_no,purchased_timestamp);
+      insert into notifications values (user_no, 'You have successfully purchased '
+      ||data_total || ' mb. '|| reward_point || ' reward points have been deducted from your total reward points.'
+      ||' The data amount will expire on '|| end_date);
+      update users set (total_reward_point, total_mb) =
+      (old_reward_point-reward_point, old_data + data_total);
+      raise notice 'successfully purchased a data offer : % using reward points',offer_no;
+    else
+      raise notice 'have not sufficient reward points';
+    end if;
 
-  EXCEPTION
-   WHEN OTHERS THEN
-    RAISE NOTICE 'CANNOT PURCHASE THE DATA OFFER % USING THE REWARD POINTS', OFFER_NO;
+  exception
+   when others then
+    raise notice 'cannot purchase the data offer % using the reward points', offer_no;
   end;
 
 $$ language plpgsql;
@@ -246,9 +246,9 @@ create or replace procedure make_fnf(in number_by numeric, in number_to numeric)
 declare
 begin
     insert into fnf values(number_by, number_to);
-    raise notice 'Successfully inserted the fnf';
+    raise notice 'successfully inserted the fnf';
     exception when others then
-    raise notice 'Cannot insert the fnf';
+    raise notice 'cannot insert the fnf';
 end;
 $$ language plpgsql;
 
@@ -256,16 +256,19 @@ create or replace procedure make_link(in number_by numeric, in number_to numeric
 declare
 begin
   insert into link values (number_by, number_to);
-  raise notice 'Successfully inserted the link';
+  raise notice 'successfully inserted the link';
   exception when others then
-  raise notice 'Cannot insert the link';
+  raise notice 'cannot insert the link';
 
 end;
 $$ language plpgsql;
 
-DO  $$
-BEGIN
-  CALL PURCHASE_INTERNET_OFFER(102, 1755840785);
+create or replace procedure migrate_package(in mob_number numeric, in p_name varchar(40)) as $$
+declare
+  p_id numeric;
+begin
+  select p_id from package where package_name = p_name into p_id;
+  update users set package_id = p_id where mobile_number = mob_number;
 end;
-$$;
 
+  $$ language plpgsql;
