@@ -1,172 +1,172 @@
 
-CREATE TABLE PACKAGE (
-  PACKAGE_ID NUMERIC PRIMARY KEY,
-  PACKAGE_NAME VARCHAR (40) NOT NULL,
-  CALL_RATE NUMERIC NOT NULL,
-  SMS_RATE NUMERIC NOT NULL,
-  DATA_RATE NUMERIC NOT NULL,
-  FNF_LIMIT NUMERIC NOT NULL
+create table package (
+  package_id numeric primary key,
+  package_name varchar (40) not null,
+  call_rate numeric not null,
+  sms_rate numeric not null,
+  data_rate numeric not null,
+  fnf_limit numeric not null
 );
 
-CREATE TABLE VOUCHERS(
-  VOUCHER_ID NUMERIC PRIMARY KEY,
-  CODE NUMERIC NOT NULL,
-  VALIDITY NUMERIC NOT NULL,
-  DESCRIPTION VARCHAR (200) NOT NULL
+create table vouchers(
+  voucher_id numeric primary key,
+  code numeric not null,
+  validity numeric not null,
+  description varchar (200) not null
 );
 
-CREATE TABLE OFFERS (
-  OFFER_ID NUMERIC PRIMARY KEY,
-  PRICE NUMERIC,
-  VALIDITY NUMERIC NOT NULL,
-  REWARD_POINTS NUMERIC
+create table offers (
+  offer_id numeric primary key,
+  price numeric,
+  validity numeric not null,
+  reward_points numeric
 );
 
-CREATE TABLE REWARD_OFFER (
-  POINTS_NEED NUMERIC NOT NULL,
-  MB_AMOUNT NUMERIC NOT NULL
-) INHERITS (OFFERS);
+create table reward_offer (
+  points_need numeric not null,
+  mb_amount numeric not null
+) inherits (offers);
 
-CREATE TABLE SMS_OFFER
+create table sms_offer
 (
-	SMS_AMOUNT NUMERIC NOT NULL
-) INHERITS (OFFERS);
+	sms_amount numeric not null
+) inherits (offers);
 
-CREATE TABLE INTERNET_OFFER(
-  DATA_AMOUNT NUMERIC NOT NULL
-) INHERITS (OFFERS);
+create table internet_offer(
+  data_amount numeric not null
+) inherits (offers);
 
-CREATE TABLE TALK_TIME_OFFER(
-  TALK_TIME NUMERIC NOT NULL
-) INHERITS (OFFERS);
+create table talk_time_offer(
+  talk_time numeric not null
+) inherits (offers);
 
-CREATE TABLE GENERAL_OFFER (
-  CUSTOM_ID SERIAL,
-  MUNITE NUMERIC,
-  MB_AMOUNT NUMERIC,
-  SMS_AMOUNT NUMERIC
-) INHERITS (OFFERS);
+create table general_offer (
+  custom_id serial,
+  munite numeric,
+  mb_amount numeric,
+  sms_amount numeric
+) inherits (offers);
 
-CREATE TABLE STAR (
-  STAR_ID NUMERIC PRIMARY KEY,
-  TYPE VARCHAR (20) NOT NULL,
-  AVERAGE_USES NUMERIC NOT NULL,
-  VALIDITY NUMERIC NOT NULL
+create table star (
+  star_id numeric primary key,
+  type varchar (20) not null,
+  average_uses numeric not null,
+  validity numeric not null
 );
 
-CREATE TABLE STARS_OFFER (
-  OFFER_ID NUMERIC PRIMARY KEY,
-  OFFER_NAME VARCHAR(40) NOT NULL,
-  TITLE VARCHAR (40) NOT NULL,
-  DESCRIPTION VARCHAR (200),
-  STAR_ID NUMERIC NOT NULL,
-  CONSTRAINT STAR_FK FOREIGN KEY (STAR_ID)
-    REFERENCES STAR (STAR_ID)
+create table stars_offer (
+  offer_id numeric primary key,
+  offer_name varchar(40) not null,
+  title varchar (40) not null,
+  description varchar (200),
+  star_id numeric not null,
+  constraint star_fk foreign key (star_id)
+    references star (star_id)
 );
 
-CREATE TABLE USERS (
-  MOBILE_NUMBER NUMERIC PRIMARY KEY,
-  BALANCE NUMERIC NOT NULL,
-  TOTAL_MB NUMERIC,
-  TOTAL_REWARD_POINT NUMERIC,
-  EMERGENCY_BALANCE_DUE NUMERIC,
-  USER_NAME VARCHAR(40) NOT NULL,
-  TOTAL_TALK_TIME NUMERIC,
-  TOTAL_OFFER_SMS NUMERIC,
-  PACKAGE_ID NUMERIC UNIQUE NOT NULL,
-  STAR_ID NUMERIC,
-  STAR_DATE TIMESTAMPTZ,
-  CONSTRAINT PACKAGE_FK FOREIGN KEY (PACKAGE_ID)
-    REFERENCES PACKAGE (PACKAGE_ID) ,
-  CONSTRAINT STAR_FK FOREIGN KEY (STAR_ID)
-    REFERENCES STAR (STAR_ID)
-);
-
-
-CREATE TABLE USER_VOUCHER (
-  USER_ID NUMERIC NOT NULL,
-  VOUCHER_ID NUMERIC PRIMARY KEY,
-  CONSTRAINT USER_FK FOREIGN KEY (USER_ID)
-    REFERENCES USERS (MOBILE_NUMBER),
-  CONSTRAINT VOUCHER_FK FOREIGN KEY (VOUCHER_ID)
-    REFERENCES VOUCHERS (VOUCHER_ID)
-);
-
-CREATE TABLE LINK (
-  LINKED_BY NUMERIC NOT NULL,
-  LINKED_TO NUMERIC NOT NULL,
-  PRIMARY KEY(LINKED_BY, LINKED_TO),
-  CONSTRAINT LINKED_BY_FK FOREIGN KEY (LINKED_BY)
-    REFERENCES USERS (MOBILE_NUMBER),
-  CONSTRAINT LINKED_TO_FK FOREIGN KEY (LINKED_TO)
-    REFERENCES USERS(MOBILE_NUMBER)
+create table users (
+  mobile_number numeric primary key,
+  balance numeric not null,
+  total_mb numeric,
+  total_reward_point numeric,
+  emergency_balance_due numeric,
+  user_name varchar(40) not null,
+  total_talk_time numeric,
+  total_offer_sms numeric,
+  package_id numeric unique not null,
+  star_id numeric,
+  star_date timestamptz,
+  constraint package_fk foreign key (package_id)
+    references package (package_id) ,
+  constraint star_fk foreign key (star_id)
+    references star (star_id)
 );
 
 
-CREATE TABLE FNF (
-  FNF_BY NUMERIC NOT NULL,
-  FNF_TO NUMERIC NOT NULL,
-  PRIMARY KEY(FNF_BY, FNF_TO),
-  CONSTRAINT FNF_BY_FK FOREIGN KEY (FNF_BY)
-    REFERENCES USERS (MOBILE_NUMBER),
-  CONSTRAINT FNF_TO_FK FOREIGN KEY (FNF_TO)
-    REFERENCES USERS(MOBILE_NUMBER)
+create table user_voucher (
+  user_id numeric not null,
+  voucher_id numeric primary key,
+  constraint user_fk foreign key (user_id)
+    references users (mobile_number),
+  constraint voucher_fk foreign key (voucher_id)
+    references vouchers (voucher_id)
 );
 
-CREATE TABLE PURCHASE_OFFER(
-  USER_ID NUMERIC NOT NULL,
-  OFFER_ID NUMERIC NOT NULL,
-  PURCHASE_DATE TIMESTAMPTZ NOT NULL,
-  PRIMARY KEY(USER_ID, OFFER_ID),
-  CONSTRAINT USER_ID_FK FOREIGN KEY (USER_ID)
-    REFERENCES USERS (MOBILE_NUMBER),
-  CONSTRAINT OFFER_ID_FK FOREIGN KEY (OFFER_ID)
-    REFERENCES OFFERS(OFFER_ID)
+create table link (
+  linked_by numeric not null,
+  linked_to numeric not null,
+  primary key(linked_by, linked_to),
+  constraint linked_by_fk foreign key (linked_by)
+    references users (mobile_number),
+  constraint linked_to_fk foreign key (linked_to)
+    references users(mobile_number)
 );
 
 
-CREATE TABLE HISTORY(
-  H_DATE TIMESTAMPTZ NOT NULL,
-  USER_ID NUMERIC PRIMARY KEY,
-  CONSTRAINT USER_FK FOREIGN KEY (USER_ID)
-    REFERENCES USERS (MOBILE_NUMBER)
+create table fnf (
+  fnf_by numeric not null,
+  fnf_to numeric not null,
+  primary key(fnf_by, fnf_to),
+  constraint fnf_by_fk foreign key (fnf_by)
+    references users (mobile_number),
+  constraint fnf_to_fk foreign key (fnf_to)
+    references users(mobile_number)
 );
 
-CREATE TABLE RECHARGE_HISTORY(
-  AMOUNT NUMERIC NOT NULL,
-  VALIDITY NUMERIC NOT NULL
-) INHERITS (HISTORY);
-
-CREATE TABLE INTERNET_HISTORY(
-  MB_USED NUMERIC NOT NULL
-) INHERITS (HISTORY);
-
-CREATE TABLE SMS_HISTORY(
-  SMS_NUMBER NUMERIC NOT NULL,
-  COST NUMERIC NOT NULL,
-  TYPE VARCHAR (40) NOT NULL
-) INHERITS (HISTORY);
-
-CREATE TABLE CALL_HISTORY(
-  CALL_NUMBER NUMERIC NOT NULL,
-  COST NUMERIC NOT NULL,
-  TYPE VARCHAR (40) NOT NULL
-) INHERITS (HISTORY);
-
-CREATE TABLE EMERGENCY_BALANCE(
-  USER_ID NUMERIC PRIMARY KEY,
-  AMOUNT NUMERIC NOT NULL,
-  TAKEN_DATE TIMESTAMPTZ NOT NULL,
-  VALIDITY NUMERIC NOT NULL,
-  CONSTRAINT USER_FK FOREIGN KEY (USER_ID)
-    REFERENCES USERS (MOBILE_NUMBER)
+create table purchase_offer(
+  user_id numeric not null,
+  offer_id numeric not null,
+  purchase_date timestamptz not null,
+  primary key(user_id, offer_id),
+  constraint user_id_fk foreign key (user_id)
+    references users (mobile_number),
+  constraint offer_id_fk foreign key (offer_id)
+    references offers(offer_id)
 );
 
-CREATE TABLE NOTIFICATIONS(
-  USER_ID NUMERIC PRIMARY KEY,
-  MESSAGE VARCHAR (200) NOT NULL,
-  CONSTRAINT USER_FK FOREIGN KEY (USER_ID)
-    REFERENCES USERS (MOBILE_NUMBER)
+
+create table history(
+  h_date timestamptz not null,
+  user_id numeric primary key,
+  constraint user_fk foreign key (user_id)
+    references users (mobile_number)
+);
+
+create table recharge_history(
+  amount numeric not null,
+  validity numeric not null
+) inherits (history);
+
+create table internet_history(
+  mb_used numeric not null
+) inherits (history);
+
+create table sms_history(
+  sms_number numeric not null,
+  cost numeric not null,
+  type varchar (40) not null
+) inherits (history);
+
+create table call_history(
+  call_number numeric not null,
+  cost numeric not null,
+  type varchar (40) not null
+) inherits (history);
+
+create table emergency_balance(
+  user_id numeric primary key,
+  amount numeric not null,
+  taken_date timestamptz not null,
+  validity numeric not null,
+  constraint user_fk foreign key (user_id)
+    references users (mobile_number)
+);
+
+create table notifications(
+  user_id numeric primary key,
+  message varchar (200) not null,
+  constraint user_fk foreign key (user_id)
+    references users (mobile_number)
 );
 
 drop table purchase_offer;
@@ -204,7 +204,6 @@ drop table link;
 
 drop table fnf;
 
-
 drop table emergency_balance;
 
 drop table notifications;
@@ -215,13 +214,11 @@ drop table star;
 
 drop table package;
 
+select * from pg_timezone_names;
 
-
-SELECT * FROM PG_TIMEZONE_NAMES;
-
-SET TIMEZONE = 'Asia/Dhaka';
-DO $$
-BEGIN
-RAISE NOTICE 'THE current MONTH DATE AND TIME IS %',TO_CHAR((NOW()+ interval '1 day' * 30), 'YYYY-MM-DD HH12:MI:SS PM');
-END;
+set timezone = 'asia/dhaka';
+do $$
+begin
+raise notice 'the current month date and time is %',to_char((now()+ interval '1 day' * 30), 'yyyy-mm-dd hh12:mi:ss pm');
+end;
   $$
