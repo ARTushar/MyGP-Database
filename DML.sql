@@ -19,8 +19,88 @@ INSERT INTO STAR VALUES (1, 'PLATINUM_PLUS', 4000, 180);
 INSERT INTO STAR VALUES (2, 'PLATINUM', 3000, 180);
 INSERT INTO STAR VALUES (3, 'GOLD', 2500, 180);
 INSERT INTO STAR VALUES (4, 'SILVER', 2000, 180);
+INSERT INTO STAR VALUES (0, 'NOT_STAR', 0, 0);
+
 
 INSERT INTO USERS VALUES
 (01755840785, 13.4, 10, 185, 0, 'RAJU', 0, 0, 10, NULL, NULL),
 (01787571129, 20.9, 50, 200, 0, 'TUSHAR', 5, 10, 11, 1, NULL);
+
+delete from package;
+copy package from 'E:\Dropbox\Level 2 Term 2\Database Sessional\Project MyGP\MyGP\MyGP-Database\Data\package.csv'
+with (null  'minus',
+delimiter ',');
+
+delete from reward_offer;
+copy reward_offer from 'E:\Dropbox\Level 2 Term 2\Database Sessional\Project MyGP\MyGP\MyGP-Database\Data\reward_offer.csv'
+with (null  'minus',
+delimiter ',');
+
+delete from internet_offer;
+copy internet_offer
+from 'E:\Dropbox\Level 2 Term 2\Database Sessional\Project MyGP\MyGP\MyGP-Database\Data\data_offer.csv'
+with (null  'minus',
+delimiter ',');
+
+
+delete from sms_offer;
+copy sms_offer
+from 'E:\Dropbox\Level 2 Term 2\Database Sessional\Project MyGP\MyGP\MyGP-Database\Data\sms_offer.csv'
+with (null  'minus',
+delimiter ',');
+
+delete from talk_time_offer;
+copy talk_time_offer
+from 'E:\Dropbox\Level 2 Term 2\Database Sessional\Project MyGP\MyGP\MyGP-Database\Data\talk_time_offer.csv'
+with (null  'minus',
+delimiter ',');
+
+delete from users;
+copy users
+from 'E:\Dropbox\Level 2 Term 2\Database Sessional\Project MyGP\MyGP\MyGP-Database\Data\user.csv'
+with (null  'minus',
+delimiter ',');
+
+delete from fnf;
+copy fnf
+from 'E:\Dropbox\Level 2 Term 2\Database Sessional\Project MyGP\MyGP\MyGP-Database\Data\fnf.csv'
+with (null  'minus',
+delimiter ',');
+
+delete from link;
+copy link
+from 'E:\Dropbox\Level 2 Term 2\Database Sessional\Project MyGP\MyGP\MyGP-Database\Data\link.csv'
+with (null  'minus',
+delimiter ',');
+
+
+delete from purchase_offer;
+copy purchase_offer
+from 'E:\Dropbox\Level 2 Term 2\Database Sessional\Project MyGP\MyGP\MyGP-Database\Data\purchase_offer.csv'
+with (null  'minus',
+delimiter ',');
+
+delete from recharge_history;
+copy recharge_history
+from 'E:\Dropbox\Level 2 Term 2\Database Sessional\Project MyGP\MyGP\MyGP-Database\Data\recharge_history.csv'
+with (null  'minus',
+delimiter ',');
+
+delete from sms_history;
+copy sms_history
+from 'E:\Dropbox\Level 2 Term 2\Database Sessional\Project MyGP\MyGP\MyGP-Database\Data\sms_history.csv'
+with (null  'minus',
+delimiter ',');
+
+delete from internet_history;
+copy internet_history
+from 'E:\Dropbox\Level 2 Term 2\Database Sessional\Project MyGP\MyGP\MyGP-Database\Data\data_history.csv'
+with (null  'minus',
+delimiter ',');
+
+delete from call_history;
+copy call_history
+from 'E:\Dropbox\Level 2 Term 2\Database Sessional\Project MyGP\MyGP\MyGP-Database\Data\call_history.csv'
+with (null  'minus',
+delimiter ',');
 
