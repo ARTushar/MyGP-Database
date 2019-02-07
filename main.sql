@@ -1,8 +1,11 @@
 create database mygp;
 
 do  $$
+  declare
+  ccc int;
 begin
-  call purchase_internet_offer(102, 1755840785);
+  ccc := max_same_offer_used(1727109552, 90);
+  raise notice '%', ccc;
 end;
 $$;
 

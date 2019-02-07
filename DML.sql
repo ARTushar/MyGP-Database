@@ -22,15 +22,13 @@ INSERT INTO STAR VALUES (4, 'SILVER', 2000, 180);
 INSERT INTO STAR VALUES (0, 'NOT_STAR', 0, 0);
 
 
-INSERT INTO USERS VALUES
-(01755840785, 13.4, 10, 185, 0, 'RAJU', 0, 0, 10, NULL, NULL),
-(01787571129, 20.9, 50, 200, 0, 'TUSHAR', 5, 10, 11, 1, NULL);
 
 delete from package;
 copy package from 'E:\Dropbox\Level 2 Term 2\Database Sessional\Project MyGP\MyGP\MyGP-Database\Data\package.csv'
 with (null  'minus',
 delimiter ',');
 
+delete from offers;
 delete from reward_offer;
 copy reward_offer from 'E:\Dropbox\Level 2 Term 2\Database Sessional\Project MyGP\MyGP\MyGP-Database\Data\reward_offer.csv'
 with (null  'minus',
@@ -104,3 +102,7 @@ from 'E:\Dropbox\Level 2 Term 2\Database Sessional\Project MyGP\MyGP\MyGP-Databa
 with (null  'minus',
 delimiter ',');
 
+
+INSERT INTO USERS VALUES
+(01755840785, 13.4, 10, 185, 0, 'RAJU', 0, 0, 10, NULL, NULL),
+(01787571129, 20.9, 50, 200, 0, 'TUSHAR', 5, 10, 11, 1, NULL);

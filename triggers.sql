@@ -27,9 +27,7 @@ begin
     usage_tobe_star := a.average_uses;
     if total_usage_last3months >= usage_tobe_star then
       update users set STAR_ID = str_id where MOBILE_NUMBER = new.user_id;
-      --return new;
       exit ;
-      --raise notice 'haha he is ' || a.type;
     end if;
   end loop;
   return new;

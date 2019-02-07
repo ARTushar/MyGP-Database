@@ -1,3 +1,50 @@
+
+drop table purchase_offer;
+
+drop table recharge_history;
+
+drop table internet_history;
+
+drop table sms_history;
+
+drop table call_history;
+
+drop table history;
+
+drop table reward_offer;
+
+drop table sms_offer;
+
+drop table internet_offer;
+
+drop table talk_time_offer;
+
+drop table general_offer;
+
+
+drop table offers;
+
+drop table stars_offer;
+
+drop table user_voucher;
+
+drop table vouchers;
+
+drop table link;
+
+drop table fnf;
+
+
+drop table emergency_balance;
+
+drop table notifications;
+
+drop table users;
+
+drop table star;
+
+drop table package;
+
 create table package (
   package_id numeric primary key,
   package_name varchar (40) not null,
@@ -188,50 +235,4 @@ create table notifications(
   constraint user_fk foreign key (user_id)
     references users (mobile_number) on delete cascade
 );
-
-drop table purchase_offer;
-
-drop table recharge_history;
-
-drop table internet_history;
-
-drop table sms_history;
-
-drop table call_history;
-
-drop table history;
-
-drop table reward_offer;
-
-drop table sms_offer;
-
-drop table internet_offer;
-
-drop table talk_time_offer;
-
-drop table general_offer;
-
-
-drop table offers;
-
-drop table stars_offer;
-
-drop table user_voucher;
-
-drop table vouchers;
-
-drop table link;
-
-drop table fnf;
-
-
-drop table emergency_balance;
-
-drop table notifications;
-
-drop table users;
-
-drop table star;
-
-drop table package;
 
